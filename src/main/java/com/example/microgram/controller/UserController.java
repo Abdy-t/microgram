@@ -20,6 +20,9 @@ public class UserController {
     @Autowired
     private SubscriptionRepository subscriptionRepository;
 
+    @Autowired
+    private LikeRepository likeRepository;
+
     @PostMapping("/user")
     public User createUser(@RequestBody User user) {
         // merge
@@ -43,8 +46,6 @@ public class UserController {
         subscriptionRepository.save(subscription);
         return subscription;
     }
-//    @PostMapping("/like")
-//    public Publication
 
     @DeleteMapping("/user/{id}")
     public User deleteUser(@PathVariable String id) {
@@ -87,9 +88,19 @@ public class UserController {
         }
         return publications;
     }
+
     @GetMapping("/watchPublication")
     public Iterable<Publication> watchAllPublication() {
         return publicationRepository.findAll();
+    }
+
+    @GetMapping("/checkLike/{email}/{photo}")
+    public boolean checkLike(@PathVariable("email") String email, @PathVariable("photo") String photo) {
+//        boolean result = false;
+        if (likeRepository.existsByMarkAccount(email) && likeRepository.existsByMarkPhoto(photo)) {
+                 return true;
+        }else return false;
+
     }
 
 }
