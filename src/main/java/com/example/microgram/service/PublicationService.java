@@ -33,6 +33,14 @@ public class PublicationService {
         this.subscriptionRepository=subscriptionRepository;
     }
 
+    public Slice<PublicationDTO> getPublications(String id, Pageable pageable) {
+        var user = userRepository.getById(id);
+        List<Publication> publications = new ArrayList<>();
+        IntStream.range(0, user.getPublications().size()).forEachOrdered(i -> publications.add(user.getPublications().get(i)));
+        Page<Publication> page = new PageImpl<>(publications, pageable, publications.size());
+        return page.map(PublicationDTO::from);
+    }
+
     public Slice<PublicationDTO> getTapePublications(String id, Pageable pageable) {
         var user = userRepository.getById(id);
         List<Subscription> s = subscriptionRepository.getAllByWho(user.getEmail());

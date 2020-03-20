@@ -34,9 +34,15 @@ public class PublicationController {
     }
 
     @ApiPageable
-    @GetMapping("/show/{id}")
+    @GetMapping("/{id}/watch")
     public Slice<PublicationDTO> getTapePublications(@PathVariable String id, @ApiIgnore Pageable pageable) {
         return publicationService.getTapePublications(id, pageable);
+    }
+
+    @ApiPageable
+    @GetMapping("/{id}")
+    public Slice<PublicationDTO> getPublications(@PathVariable String id, @ApiIgnore Pageable pageable) {
+        return publicationService.getPublications(id, pageable);
     }
 
     @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
