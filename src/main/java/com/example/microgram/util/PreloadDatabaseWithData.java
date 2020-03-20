@@ -1,77 +1,47 @@
-//package com.example.microgram.util;
-//
-//import com.example.microgram.model.*;
-//import org.springframework.boot.CommandLineRunner;
-//import org.springframework.context.annotation.Bean;
-//import org.springframework.context.annotation.Configuration;
-//
-//import java.time.LocalDateTime;
-//import java.time.format.DateTimeFormatter;
-//import java.util.ArrayList;
-//import java.util.List;
-//import java.util.Random;
-//import java.util.stream.Stream;
-//
-//@Configuration
-//public class PreloadDatabaseWithData {
-//
-//    @Bean
-//    CommandLineRunner initDatabase(UserRepository userRepository) {
-//
-//        userRepository.deleteAll();
-//        return (args) -> Stream.of(users())
-//                .peek(System.out::println)
-//                .forEach(userRepository::save);
-//    }
-//
-//    private User getRandomUser() {
-//        User newUser = new User();
-//        String account = Generator.makeName();
-//        String email = Generator.makeEmail();
-//        String password = Generator.makePassword();
-//        List<Publication> pList = getRandomPublication();
-//        newUser = new User(account, email, password,  pList, null,null, pList.size(),0,0);
-//
-//        return newUser;
-//    }
-//
-//    private List<Publication> getRandomPublication() {
-//        List<Publication> publications = new ArrayList<>();
-//        String[] x = {"1.jpg", "2.jpg", "3.jpg"};
-//        Random random = new Random();
-//        int randPubl = random.nextInt(4) + 1;
-//        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-//        LocalDateTime now = LocalDateTime.now();
-//        String time = dtf.format(now);
-//        List<Comment> comments = new ArrayList<>();
-//        List<Like> likes = new ArrayList<>();
-//        for (int j = 0; j < randPubl; j++) {
-//            int randInt = random.nextInt(3);
-//            String photo = x[randInt];
-//            String description = Generator.makeDescription();
-//            publications.add(new Publication(photo, description, time, null, null));
-//        }
-//
-//        for (int i = 0; i < publications.size(); i++) {
-//            String comment = Generator.makeDescription();
-//            String name = Generator.makeName();
-//            comments.add(new Comment(comment, time));
-//            likes.add(new Like(name, publications.get(i).getPhoto(), time));
-//        }
-//
-//        for (int i = 0; i < publications.size(); i++) {
-//            publications.get(i).setComments(comments);
-//            publications.get(i).setLikes(likes);
-//        }
-//        return publications;
-//    }
-//
-//    private User[] users() {
-//        return new User[]{
-//                getRandomUser(),
-//                getRandomUser(),
-//                getRandomUser(),
-//                getRandomUser(),
-//                getRandomUser()};
-//    }
-//}
+package com.example.microgram.util;
+
+import com.example.microgram.model.*;
+import com.example.microgram.repository.LikeRepository;
+import com.example.microgram.repository.PublicationRepository;
+import com.example.microgram.repository.SubscriptionRepository;
+import com.example.microgram.repository.UserRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+
+@Configuration
+public class PreloadDatabaseWithData {
+
+    @Bean
+    CommandLineRunner initDatabase(UserRepository userRepository, PublicationRepository publicationRepository, LikeRepository likeRepository, SubscriptionRepository subscriptionRepository) {
+        return(args) -> {
+            List<User> users = readMovies("users.json");
+            publicationRepository.deleteAll();
+            subscriptionRepository.deleteAll();
+            likeRepository.deleteAll();
+            userRepository.deleteAll();
+            userRepository.saveAll(users);
+        };
+    }
+
+    private static List<User> readMovies(String fileName) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            var data = Files.readString(Paths.get(fileName));
+            var listType = new TypeReference<List<User>>(){};
+            return mapper.readValue(data, listType);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return List.of();
+    }
+
+}

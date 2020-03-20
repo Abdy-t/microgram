@@ -1,35 +1,29 @@
 package com.example.microgram.model;
 
-import lombok.Data;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Document(collection = "publications")
 @Data
+@Builder
+@NoArgsConstructor(access = AccessLevel.PRIVATE, force = true)
+@AllArgsConstructor
 public class Publication {
     @Id
-    private String id;
+    @Builder.Default
+    private String id = UUID.randomUUID().toString();
     private String photo;
     private String description;
-    private String publicationDate;
+    private Date publicationDate;
     @DBRef
     private List<Comment> comments;
     @DBRef
     private List<Like> likes;
 
-//    @Data
-//    public class Comment {
-//        private String userAccount;
-//        private String commentText;
-//        private String commentDate;
-//    }
-//    @Data
-//    public class Like {
-//        private String markAccount;
-//        private String markPhoto;
-//        private String markDate;
-//    }
 }

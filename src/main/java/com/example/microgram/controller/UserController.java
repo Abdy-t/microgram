@@ -1,106 +1,92 @@
 package com.example.microgram.controller;
 
+import com.example.microgram.annotations.ApiPageable;
+import com.example.microgram.dto.SubscriptionDTO;
+import com.example.microgram.dto.UserDTO;
 import com.example.microgram.model.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.microgram.service.SubscriptionService;
+import com.example.microgram.service.UserService;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
+@RequestMapping("/main")
 public class UserController {
+    private final UserService userService;
+    private final SubscriptionService subscriptionService;
 
-    @Autowired
-    private UserRepository userRepository;
+    public UserController(UserService userService, SubscriptionService subscriptionService) {
+        this.userService=userService;
+        this.subscriptionService=subscriptionService;
+    }
 
-    @Autowired
-    private PublicationRepository publicationRepository;
+    @ApiPageable
+    @GetMapping
+    public Slice<UserDTO> findUsers(@ApiIgnore Pageable pageable) {
+        return userService.findUsers(pageable);
+    }
 
-    @Autowired
-    private SubscriptionRepository subscriptionRepository;
+    @ApiPageable
+    @GetMapping("/{id}/users")
+    public Slice<UserDTO> showUsers(@PathVariable String id,@ApiIgnore Pageable pageable) {
+        return userService.showUsers(id, pageable);
+    }
 
-    @Autowired
-    private LikeRepository likeRepository;
+    @PostMapping(path="/{id}/users/{id2}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public SubscriptionDTO addSubscribe(@PathVariable String id, @PathVariable String id2, @RequestBody SubscriptionDTO subscriptionDTO) {
+        return subscriptionService.addSubscribe(id, id2, subscriptionDTO);
+    }
 
-    @PostMapping("/user")
-    public User createUser(@RequestBody User user) {
+    @DeleteMapping("/{id}/users/{id2}")
+    public boolean deleteSubscribe(@PathVariable String id, @PathVariable String id2) {
+        return subscriptionService.deleteSubscribe(id, id2);
+    }
+
+    @GetMapping("/{id}/subscriptions")
+    public Iterable<Subscription> showSubscriptions(@PathVariable String id) {
+        return subscriptionService.showSubscriptions(id);
+    }
+
+    @GetMapping("/{id}/followers")
+    public Iterable<Subscription> showFollowers(@PathVariable String id) {
+        return subscriptionService.showFollowers(id);
+    }
+
+    @GetMapping("/find/{email}")
+    public UserDTO findUser(@PathVariable String email) {
+        return userService.findUser(email);
+    }
+
+    @GetMapping("/login/{email}/{password}")
+    public UserDTO loginUser(@PathVariable String email, @PathVariable String password) {
+        return userService.loginUser(email, password);
+    }
+
+    @DeleteMapping("/{id}/deleteUser")
+    public boolean deleteUser(@PathVariable String id) {
+        return userService.deleteUser(id);
+    }
+
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public UserDTO registerUser(@RequestBody UserDTO userDTO) {
         // merge
-        User userN = userRepository.findById(user.getId()).orElse(user);
-        for (Publication p : user.getPublications()) {
-            if (userN.getPublications().stream().filter(x -> x.getId().equals(p.getId())).count() == 0)
-                userN.getPublications().add(p);
-        }
-        // save
-        List<Publication> publications = userN.getPublications();
-        for (Publication p : publications)
-            publicationRepository.save(p);
-
-        userRepository.save(userN);
-
-        return userN;
+//        User userN = userRepository.findById(user.getId()).orElse(user);
+//        for (Publication p : user.getPublications()) {
+//            if (userN.getPublications().stream().filter(x -> x.getId().equals(p.getId())).count() == 0)
+//                userN.getPublications().add(p);
+//        }
+        return userService.register(userDTO);
     }
 
-    @PostMapping("/subscribe")
-    public Subscription subscribe(@RequestBody Subscription subscription) {
-        subscriptionRepository.save(subscription);
-        return subscription;
-    }
-
-    @DeleteMapping("/user/{id}")
-    public User deleteUser(@PathVariable String id) {
-        User user = userRepository.findById(id).orElse(new User());
-        userRepository.deleteById(id);
-        return user;
-    }
-
-    @GetMapping("/user/{id}")
-    public User getUser(@PathVariable String id) {
-        User user = userRepository.findById(id).orElse(new User());
-        return user;
-    }
-
-    @GetMapping("/checkUser/{email}")
-    public boolean checkEmail(@PathVariable("email") String email) {
-        return userRepository.existsByEmail(email);
-    }
-
-    @GetMapping("/findUser/{email}")
-    public Optional<User> findUser(@PathVariable("email") String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    @GetMapping("/watchPublication/{email}")
-    public List<Publication> watchPublication(@PathVariable("email") String email) {
-        List<Subscription> sb = subscriptionRepository.findByWho(email);
-        List<User> usr = new ArrayList<>();
-        List<Publication> publications = new ArrayList<>();
-        int i = 0;
-        for(Subscription s : sb){
-            String emailSub = s.getOnWhom();
-            User newUser = userRepository.getByEmail(emailSub);
-            usr.add(newUser);
-            i++;
-        }
-        int j = 0;
-        for (User u : usr) {
-            publications.addAll(u.getPublications());
-        }
-        return publications;
-    }
-
-    @GetMapping("/watchPublication")
-    public Iterable<Publication> watchAllPublication() {
-        return publicationRepository.findAll();
-    }
-
-    @GetMapping("/checkLike/{email}/{photo}")
-    public boolean checkLike(@PathVariable("email") String email, @PathVariable("photo") String photo) {
-//        boolean result = false;
-        if (likeRepository.existsByMarkAccount(email) && likeRepository.existsByMarkPhoto(photo)) {
-                 return true;
-        }else return false;
-
-    }
-
+//    @GetMapping("/checkLike/{email}/{photo}")
+//    public boolean checkLike(@PathVariable("email") String email, @PathVariable("photo") String photo) {
+////        boolean result = false;
+//        if (likeRepository.existsByMarkAccount(email) && likeRepository.existsByMarkPhoto(photo)) {
+//                 return true;
+//        }else return false;
+//
+//    }
 }

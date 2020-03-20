@@ -1,5 +1,6 @@
-package com.example.microgram.model;
+package com.example.microgram.repository;
 
+import com.example.microgram.model.Publication;
 import org.springframework.data.repository.CrudRepository;
 
 public interface PublicationRepository extends CrudRepository<Publication, String> {
