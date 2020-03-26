@@ -19,4 +19,5 @@ public class Like {
     private String markAccount;
     private String markPhoto;
     private Date markDate;
+
 }

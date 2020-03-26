@@ -5,67 +5,86 @@ import com.example.microgram.dto.SubscriptionDTO;
 import com.example.microgram.dto.UserDTO;
 import com.example.microgram.model.*;
 import com.example.microgram.service.SubscriptionService;
+import com.example.microgram.service.UserAuthService;
 import com.example.microgram.service.UserService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
-@RequestMapping("/main")
+@RequestMapping("/")
 public class UserController {
     private final UserService userService;
+    private final UserAuthService userAuthService;
     private final SubscriptionService subscriptionService;
 
-    public UserController(UserService userService, SubscriptionService subscriptionService) {
+    public UserController(UserService userService, SubscriptionService subscriptionService, UserAuthService userAuthService) {
         this.userService=userService;
         this.subscriptionService=subscriptionService;
+        this.userAuthService=userAuthService;
     }
 
+        @ApiPageable
+        @GetMapping
+        public Slice<UserDTO> findUsers(@ApiIgnore Pageable pageable) {
+            return userService.findUsers(pageable);
+        }
+
+//    @ApiPageable
+//    @GetMapping("/{id}/users")
+//    public Slice<UserDTO> showUsers(@PathVariable String id,@ApiIgnore Pageable pageable) {
+//        return userService.showUsers(id, pageable);
+//    }
     @ApiPageable
-    @GetMapping
-    public Slice<UserDTO> findUsers(@ApiIgnore Pageable pageable) {
-        return userService.findUsers(pageable);
+    @GetMapping("/users")
+    public Slice<UserDTO> showUsers(Authentication authentication,  @ApiIgnore Pageable pageable) {
+        String user = authentication.getName();
+        System.out.println(user);
+        return userService.showUsers("1", pageable);
     }
 
-    @ApiPageable
-    @GetMapping("/{id}/users")
-    public Slice<UserDTO> showUsers(@PathVariable String id,@ApiIgnore Pageable pageable) {
-        return userService.showUsers(id, pageable);
-    }
-
-    @PostMapping(path="/{id}/users/{id2}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path="/profile/{id}/users/{id2}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public SubscriptionDTO addSubscribe(@PathVariable String id, @PathVariable String id2, @RequestBody SubscriptionDTO subscriptionDTO) {
         return subscriptionService.addSubscribe(id, id2, subscriptionDTO);
     }
 
-    @DeleteMapping("/{id}/users/{id2}")
+    @DeleteMapping("/profile/{id}/users/{id2}")
     public boolean deleteSubscribe(@PathVariable String id, @PathVariable String id2) {
         return subscriptionService.deleteSubscribe(id, id2);
     }
 
-    @GetMapping("/{id}/subscriptions")
+    @GetMapping("/profile/{id}/subscriptions")
     public Iterable<Subscription> showSubscriptions(@PathVariable String id) {
         return subscriptionService.showSubscriptions(id);
     }
 
-    @GetMapping("/{id}/followers")
+    @GetMapping("/profile/{id}/followers")
     public Iterable<Subscription> showFollowers(@PathVariable String id) {
         return subscriptionService.showFollowers(id);
     }
 
-    @GetMapping("/find/{email}")
+    @GetMapping("/profile/find/{email}")
     public UserDTO findUser(@PathVariable String email) {
         return userService.findUser(email);
     }
-
-    @GetMapping("/login/{email}/{password}")
-    public UserDTO loginUser(@PathVariable String email, @PathVariable String password) {
-        return userService.loginUser(email, password);
+    @GetMapping("/{email}/{password}")
+    public UserDetails loginUser(@PathVariable String email, @PathVariable String password) {
+        return userAuthService.loadUserByUsername(email);
     }
+//    @GetMapping("/login/{email}/{password}")
+//    public UserDetails loginUser(@PathVariable String email, @PathVariable String password) {
+//        return userAuthService.loadUserByUsername(email);
+//    }
+//    @GetMapping("/login/{email}/{password}")
+//    public UserDTO loginUser(@PathVariable String email, @PathVariable String password) {
+//        return userService.loginUser(email, password);
+//    }
 
-    @DeleteMapping("/{id}/deleteUser")
+    @DeleteMapping("/profile/{id}/deleteUser")
     public boolean deleteUser(@PathVariable String id) {
         return userService.deleteUser(id);
     }
@@ -81,12 +100,4 @@ public class UserController {
         return userService.register(userDTO);
     }
 
-//    @GetMapping("/checkLike/{email}/{photo}")
-//    public boolean checkLike(@PathVariable("email") String email, @PathVariable("photo") String photo) {
-////        boolean result = false;
-//        if (likeRepository.existsByMarkAccount(email) && likeRepository.existsByMarkPhoto(photo)) {
-//                 return true;
-//        }else return false;
-//
-//    }
 }
