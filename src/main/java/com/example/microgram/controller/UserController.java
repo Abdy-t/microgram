@@ -28,42 +28,43 @@ public class UserController {
         this.userAuthService=userAuthService;
     }
 
-        @ApiPageable
-        @GetMapping
-        public Slice<UserDTO> findUsers(@ApiIgnore Pageable pageable) {
-            return userService.findUsers(pageable);
-        }
-
-//    @ApiPageable
-//    @GetMapping("/{id}/users")
-//    public Slice<UserDTO> showUsers(@PathVariable String id,@ApiIgnore Pageable pageable) {
-//        return userService.showUsers(id, pageable);
-//    }
     @ApiPageable
-    @GetMapping("/users")
-    public Slice<UserDTO> showUsers(Authentication authentication,  @ApiIgnore Pageable pageable) {
-        String user = authentication.getName();
-        System.out.println(user);
-        return userService.showUsers("1", pageable);
+    @GetMapping
+    public Slice<UserDTO> findUsers(@ApiIgnore Pageable pageable) {
+        return userService.findUsers(pageable);
     }
 
-    @PostMapping(path="/profile/{id}/users/{id2}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public SubscriptionDTO addSubscribe(@PathVariable String id, @PathVariable String id2, @RequestBody SubscriptionDTO subscriptionDTO) {
+    @ApiPageable
+    @GetMapping("/users")
+    public Slice<UserDTO> showUsers(@ApiIgnore Pageable pageable) {
+        return userService.showUsers(pageable);
+    }
+
+    @PostMapping(path="/profile/users/{id2}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public SubscriptionDTO addSubscribe( @PathVariable String id2, @RequestBody SubscriptionDTO subscriptionDTO) {
+        var user = userService.getUser();
+        String id = user.getId();
         return subscriptionService.addSubscribe(id, id2, subscriptionDTO);
     }
 
-    @DeleteMapping("/profile/{id}/users/{id2}")
-    public boolean deleteSubscribe(@PathVariable String id, @PathVariable String id2) {
+    @DeleteMapping("/profile/users/{id2}")
+    public boolean deleteSubscribe( @PathVariable String id2) {
+        var user = userService.getUser();
+        String id = user.getId();
         return subscriptionService.deleteSubscribe(id, id2);
     }
 
-    @GetMapping("/profile/{id}/subscriptions")
-    public Iterable<Subscription> showSubscriptions(@PathVariable String id) {
+    @GetMapping("/profile/subscriptions")
+    public Iterable<Subscription> showSubscriptions() {
+        var user = userService.getUser();
+        String id = user.getId();
         return subscriptionService.showSubscriptions(id);
     }
 
-    @GetMapping("/profile/{id}/followers")
-    public Iterable<Subscription> showFollowers(@PathVariable String id) {
+    @GetMapping("/profile/followers")
+    public Iterable<Subscription> showFollowers() {
+        var user = userService.getUser();
+        String id = user.getId();
         return subscriptionService.showFollowers(id);
     }
 
@@ -75,28 +76,16 @@ public class UserController {
     public UserDetails loginUser(@PathVariable String email, @PathVariable String password) {
         return userAuthService.loadUserByUsername(email);
     }
-//    @GetMapping("/login/{email}/{password}")
-//    public UserDetails loginUser(@PathVariable String email, @PathVariable String password) {
-//        return userAuthService.loadUserByUsername(email);
-//    }
-//    @GetMapping("/login/{email}/{password}")
-//    public UserDTO loginUser(@PathVariable String email, @PathVariable String password) {
-//        return userService.loginUser(email, password);
-//    }
 
-    @DeleteMapping("/profile/{id}/deleteUser")
-    public boolean deleteUser(@PathVariable String id) {
+    @DeleteMapping("/profile/deleteUser")
+    public boolean deleteUser() {
+        var user = userService.getUser();
+        String id = user.getId();
         return userService.deleteUser(id);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public UserDTO registerUser(@RequestBody UserDTO userDTO) {
-        // merge
-//        User userN = userRepository.findById(user.getId()).orElse(user);
-//        for (Publication p : user.getPublications()) {
-//            if (userN.getPublications().stream().filter(x -> x.getId().equals(p.getId())).count() == 0)
-//                userN.getPublications().add(p);
-//        }
         return userService.register(userDTO);
     }
 

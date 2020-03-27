@@ -40,7 +40,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         // должно быть доступно только
         // после авторизации пользователя
         http.authorizeRequests()
-                .antMatchers("/publication/**", "/profile/find/{email}")
+                .antMatchers("/page/**")
+                .fullyAuthenticated()
+                .antMatchers("/profile/**")
                 .fullyAuthenticated();
 
         // Правило 2: Разрешить всё остальные запросы

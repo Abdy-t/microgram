@@ -10,6 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -74,12 +76,13 @@ public class UserService {
         return UserDTO.from(user);
     }
 
-    public Slice<UserDTO> showUsers(String id, Pageable pageable) {
+    public Slice<UserDTO> showUsers(Pageable pageable) {
         Page<User> usersPage = userRepository.findAll(pageable);
         List<User> userList = usersPage.getContent();
         List<User> users = new ArrayList<>();
+        User u = getUser();
         IntStream.range(0, userList.size()).forEachOrdered(i -> {
-            if (!userList.get(i).getId().equals(id))
+            if (!userList.get(i).getId().equals(u.getId()))
             users.add(userList.get(i));
         });
         Page<User> page = new PageImpl<>(users, pageable, users.size());
@@ -98,6 +101,12 @@ public class UserService {
             userRepository.deleteById(id);
             return true;
         } else return false;
+    }
+
+    public User getUser() {
+        // get current authenticated user
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return userRepository.findByEmail(auth.getName()).get();
     }
 
 }

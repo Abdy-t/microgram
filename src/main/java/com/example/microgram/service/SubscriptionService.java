@@ -30,7 +30,9 @@ public class SubscriptionService {
                 .onWhom(user2.getEmail())
                 .eventDate(time)
                 .build();
+        if (subscriptionRepository.selectSubscription(user1.getEmail(), user2.getEmail()) == null) {
         subscriptionRepository.save(sub);
+        }
         return SubscriptionDTO.from(sub);
     }
 

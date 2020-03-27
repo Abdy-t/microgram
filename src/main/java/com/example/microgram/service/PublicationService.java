@@ -33,6 +33,15 @@ public class PublicationService {
         this.subscriptionRepository=subscriptionRepository;
     }
 
+    public Slice<PublicationDTO> getAllPublications(Pageable pageable) {
+        Iterable<Publication> pbl = publicationRepository.findAll();
+        List<Publication> publications = new ArrayList<>();
+        pbl.forEach(publications::add);
+//        publications = publicationRepository.getAll();
+        Page<Publication> page = new PageImpl<>(publications, pageable, publications.size());
+        return page.map(PublicationDTO::from);
+    }
+
     public Slice<PublicationDTO> getPublications(String id, Pageable pageable) {
         var user = userRepository.getById(id);
         List<Publication> publications = new ArrayList<>();
@@ -137,14 +146,19 @@ public class PublicationService {
         }
         return false;
     }
-    public boolean deleteComment(String idP, String idC) {
+    public boolean deleteComment(String id, String idP, String idC) {
+        User user = userRepository.getById(id);
+
         if(publicationRepository.existsById(idP)){
             Publication publication = publicationRepository.getById(idP);
-            if(publication.getComments() != null){
-                for (Comment c : publication.getComments()){
-                    commentRepository.deleteById(idC);
+            for (Publication p : user.getPublications())
+                if (p.getId().equals(idP)) {
+                    if(publication.getComments() != null){
+                        for (Comment c : publication.getComments()){
+                            commentRepository.deleteById(idC);
+                        }
+                    } return true;
                 }
-            } return true;
         }
         return false;
     }
